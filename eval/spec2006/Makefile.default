@@ -1,0 +1,52 @@
+build: build-fm build-baseline build-fm2
+
+LINKEDBIN=build/_main_._all_._files_._linked_.bc
+
+%.bc: %.cpp
+	$(BC) $(OPT) -emit-llvm -c $< -o $@ $(CFLAGS)
+	#$(BC) -O0 -emit-llvm -c $< -o $@ $(CFLAGS)
+
+%.bc: %.cc
+	$(BC) $(OPT) -emit-llvm -c $< -o $@ $(CFLAGS)
+	#$(BC) -O0 -emit-llvm -c $< -o $@ $(CFLAGS)
+
+%.bc: %.c
+	$(BC) $(OPT) -emit-llvm -c $< -o $@ $(CFLAGS)
+	#$(BC) -O0 -emit-llvm -c $< -o $@ $(CFLAGS)
+
+%.bc: %.C
+	$(BC) $(OPT) -emit-llvm -c $< -o $@ $(CFLAGS)
+	#$(BC) -O0 -emit-llvm -c $< -o $@ $(CFLAGS)
+
+$(LINKEDBIN): $(LBINS)
+	mkdir -p build
+	$(LLINK) $(LBINS) -o $(LINKEDBIN)
+	#$(LLOPT) -prune-eh -lowerswitch -simplifycfg -loop-simplify -constmerge -mergereturn -internalize -internalize-public-api-list=main -globaldce $(LINKEDBIN) -o $(LINKEDBIN)
+	#$(LLOPT) -prune-eh -lowerswitch -simplifycfg -loop-simplify -constmerge -mergereturn $(LINKEDBIN) -o $(LINKEDBIN)
+	$(LLOPT) -mergereturn $(LINKEDBIN) -o $(LINKEDBIN)
+
+baseline: $(LINKEDBIN)
+	$(LLOPT) $(LINKEDBIN) -o $(BIN).tmp.bc
+	#$(LLPATH)/llvm-dis $(BIN).tmp.bc -o $(BIN).bl.ll
+	$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).o.bl -c $(LDFLAGS)
+	#$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).bl $(LDFLAGS) 
+
+llvm: $(LINKEDBIN)
+	$(LLOPT) -mergefunc $(LINKEDBIN) -o $(BIN).tmp.bc
+	$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).o.llvm -c $(LDFLAGS)
+	#$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).llvm $(LDFLAGS)
+
+fm: $(LINKEDBIN)
+	$(LLOPT) -mergefunc -func-merging -func-merging-salssa=false -func-merging-whole-program=true -func-merging-threshold=0 -func-merging-explore=$(FMEXPLORATION) -func-merging-max-param=true -func-merging-identic-type=true -func-merging-similarity-pruning=false -func-merging-sa-method=1 -func-merging-debug=false -func-merging-verbose=false -mem2reg $(LINKEDBIN) -o $(BIN).tmp.bc
+	#$(LLPATH)/llvm-dis $(BIN).tmp.bc -o $(BIN).fm.ll
+	$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).o.fm -c $(LDFLAGS)
+	#$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).fm $(LDFLAGS) 
+
+fm2: $(LINKEDBIN)
+	$(LLOPT) -mergefunc -func-merging -func-merging-salssa=true -func-merging-operand-reorder=$(SALSSA_OPERAND_REORDERING) -func-merging-coalescing=$(SALSSA_COALESCING) -func-merging-ranking-threshold=0 -func-merging-sa-method=1 -func-merging-whole-program=true -func-merging-threshold=0 -func-merging-explore=$(FMEXPLORATION) -func-merging-max-param=true -func-merging-identic-type=true -func-merging-similarity-pruning=false -func-merging-unify-return=false -func-merging-debug=false -func-merging-verbose=false $(LINKEDBIN) -o $(BIN).tmp.bc
+	#$(LLPATH)/llvm-dis $(BIN).tmp.bc -o $(BIN).fm2.ll
+	$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).o.fm2 -c $(LDFLAGS)
+	#$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).fm2 $(LDFLAGS) 
+
+clean:
+	$(RM) -f $(LBINS) build/*.bc build/*.ll build/*.o $(BIN).fm $(BIN).bl $(BIN).llvm $(BIN).fm2 $(BIN).o.fm $(BIN).o.bl $(BIN).o.llvm $(BIN).o.fm2

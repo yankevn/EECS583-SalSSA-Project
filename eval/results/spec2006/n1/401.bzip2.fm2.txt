@@ -1,0 +1,108 @@
+clang-11: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+clang-11: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+src/bzip2.c:487:29: warning: implicit conversion of NULL constant to 'int' [-Wnull-conversion]
+   outputHandleJustInCase = NULL;
+                          ~ ^~~~
+                            0
+src/bzip2.c:533:18: warning: conversion from string literal to 'Char *' (aka 'char *') is deprecated [-Wc++11-compat-deprecated-writable-strings]
+         panic ( "compress:unexpected error" );
+                 ^
+src/bzip2.c:536:12: warning: conversion from string literal to 'Char *' (aka 'char *') is deprecated [-Wc++11-compat-deprecated-writable-strings]
+   panic ( "compress:end" );
+           ^
+src/bzip2.c:586:35: warning: conversion from string literal to 'Char *' (aka 'char *') is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      if (bzerr != BZ_OK) panic ( "decompress:bzReadGetUnused" );
+                                  ^
+src/bzip2.c:592:35: warning: conversion from string literal to 'Char *' (aka 'char *') is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      if (bzerr != BZ_OK) panic ( "decompress:bzReadGetUnused" );
+                                  ^
+src/bzip2.c:614:29: warning: implicit conversion of NULL constant to 'int' [-Wnull-conversion]
+   outputHandleJustInCase = NULL;
+                          ~ ^~~~
+                            0
+src/bzip2.c:663:18: warning: conversion from string literal to 'Char *' (aka 'char *') is deprecated [-Wc++11-compat-deprecated-writable-strings]
+         panic ( "decompress:unexpected error" );
+                 ^
+src/bzip2.c:666:12: warning: conversion from string literal to 'Char *' (aka 'char *') is deprecated [-Wc++11-compat-deprecated-writable-strings]
+   panic ( "decompress:end" );
+           ^
+src/bzip2.c:709:35: warning: conversion from string literal to 'Char *' (aka 'char *') is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      if (bzerr != BZ_OK) panic ( "test:bzReadGetUnused" );
+                                  ^
+src/bzip2.c:715:35: warning: conversion from string literal to 'Char *' (aka 'char *') is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      if (bzerr != BZ_OK) panic ( "test:bzReadGetUnused" );
+                                  ^
+src/bzip2.c:764:18: warning: conversion from string literal to 'Char *' (aka 'char *') is deprecated [-Wc++11-compat-deprecated-writable-strings]
+         panic ( "test:unexpected error" );
+                 ^
+src/bzip2.c:767:12: warning: conversion from string literal to 'Char *' (aka 'char *') is deprecated [-Wc++11-compat-deprecated-writable-strings]
+   panic ( "test:end" );
+           ^
+12 warnings generated.
+clang-11: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+src/bzlib.c:1638:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+       "OK"
+       ^
+src/bzlib.c:1639:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"SEQUENCE_ERROR"
+       ^
+src/bzlib.c:1640:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"PARAM_ERROR"
+       ^
+src/bzlib.c:1641:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"MEM_ERROR"
+       ^
+src/bzlib.c:1642:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"DATA_ERROR"
+       ^
+src/bzlib.c:1643:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"DATA_ERROR_MAGIC"
+       ^
+src/bzlib.c:1644:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"IO_ERROR"
+       ^
+src/bzlib.c:1645:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"UNEXPECTED_EOF"
+       ^
+src/bzlib.c:1646:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"OUTBUFF_FULL"
+       ^
+src/bzlib.c:1647:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"CONFIG_ERROR"
+       ^
+src/bzlib.c:1648:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"???"   /* for future */
+       ^
+src/bzlib.c:1649:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"???"   /* for future */
+       ^
+src/bzlib.c:1650:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"???"   /* for future */
+       ^
+src/bzlib.c:1651:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"???"   /* for future */
+       ^
+src/bzlib.c:1652:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"???"   /* for future */
+       ^
+src/bzlib.c:1653:8: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+      ,"???"   /* for future */
+       ^
+16 warnings generated.
+clang-11: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+src/spec.c:76:27: warning: implicit conversion from 'long' to 'float' changes value from 2147483647 to 2147483648 [-Wimplicit-int-float-conversion]
+        return ( (float) seedi / _M_MODULUS);
+                               ~ ^~~~~~~~~~
+src/spec.c:60:24: note: expanded from macro '_M_MODULUS'
+#define _M_MODULUS     2147483647L /* (2**31)-1 */
+                       ^~~~~~~~~~~
+src/spec.c:289:22: warning: conversion from string literal to 'char *' is deprecated [-Wc++11-compat-deprecated-writable-strings]
+    char *input_name="input.combined";
+                     ^
+2 warnings generated.
+clang-11: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+clang-11: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+clang-11: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+clang-11: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+clang-11: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+clang-11: warning: -lm: 'linker' input unused [-Wunused-command-line-argument]

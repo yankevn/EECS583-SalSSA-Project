@@ -1,0 +1,65 @@
+Attempting: @core_init_matrix, @core_init_state
+Sizes: 55 + 47 <= 214?
+Estimated reduction: -109% (0) 1 : @core_init_matrix; @core_init_state | Score 3.524590e-01
+FinalSizes: F1+F2 102; F12 214 : [0]
+Attempting: @core_init_matrix, @matrix_mul_matrix_bitextract
+Sizes: 55 + 42 <= 126?
+Estimated reduction: -29% (0) 2 : @core_init_matrix; @matrix_mul_matrix_bitextract | Score 3.513514e-01
+FinalSizes: F1+F2 97; F12 126 : [0]
+Attempting: @core_init_matrix, @matrix_mul_matrix
+Sizes: 55 + 37 <= 123?
+Estimated reduction: -33% (0) 3 : @core_init_matrix; @matrix_mul_matrix | Score 3.396226e-01
+FinalSizes: F1+F2 92; F12 123 : [0]
+Attempting: @core_init_state, @matrix_mul_matrix_bitextract
+Sizes: 47 + 42 <= 164?
+Estimated reduction: -84% (0) 1 : @core_init_state; @matrix_mul_matrix_bitextract | Score 3.689320e-01
+FinalSizes: F1+F2 89; F12 164 : [0]
+Attempting: @core_init_state, @matrix_mul_matrix
+Sizes: 47 + 37 <= 149?
+Estimated reduction: -77% (0) 2 : @core_init_state; @matrix_mul_matrix | Score 3.571429e-01
+FinalSizes: F1+F2 84; F12 149 : [0]
+Attempting: @matrix_mul_matrix_bitextract, @matrix_mul_matrix
+Sizes: 42 + 37 <= 48?
+Estimated reduction: 39% (1) 1 : @matrix_mul_matrix_bitextract; @matrix_mul_matrix | Score 4.712644e-01
+FinalSizes: F1+F2 79; F12 48 : [1]
+Merged: @matrix_mul_matrix_bitextract, @matrix_mul_matrix = @m.f
+Attempting: @m.f, @matrix_mul_vect
+Sizes: 48 + 27 <= 86?
+Estimated reduction: -14% (0) 1 : @m.f; @matrix_mul_vect | Score 3.483146e-01
+FinalSizes: F1+F2 75; F12 86 : [0]
+Attempting: @m.f, @matrix_sum
+Sizes: 48 + 28 <= 104?
+Estimated reduction: -36% (0) 2 : @m.f; @matrix_sum | Score 3.225806e-01
+FinalSizes: F1+F2 76; F12 104 : [0]
+Attempting: @matrix_sum, @matrix_add_const
+Sizes: 28 + 20 <= 44?
+Estimated reduction: 8% (1) 1 : @matrix_sum; @matrix_add_const | Score 3.508772e-01
+FinalSizes: F1+F2 48; F12 44 : [1]
+Merged: @matrix_sum, @matrix_add_const = @m.f.3
+Attempting: @matrix_mul_vect, @matrix_mul_const
+Sizes: 27 + 23 <= 52?
+Estimated reduction: -4% (0) 1 : @matrix_mul_vect; @matrix_mul_const | Score 4.464286e-01
+FinalSizes: F1+F2 50; F12 52 : [0]
+Attempting: @core_list_remove, @core_list_undo_remove
+Sizes: 11 + 10 <= 24?
+Estimated reduction: -14% (0) 1 : @core_list_remove; @core_list_undo_remove | Score 4.687500e-01
+FinalSizes: F1+F2 21; F12 24 : [0]
+Attempting: @start_time, @stop_time
+Sizes: 4 + 4 <= 5?
+Estimated reduction: 37% (1) 1 : @start_time; @stop_time | Score 5.000000e-01
+FinalSizes: F1+F2 8; F12 5 : [1]
+Merged: @start_time, @stop_time = @m.f.6
+Attempting: @portable_free, @check_data_types
+Sizes: 3 + 1 <= 5?
+Estimated reduction: -25% (0) 1 : @portable_free; @check_data_types | Score 3.333333e-01
+FinalSizes: F1+F2 4; F12 5 : [0]
+Attempting: @portable_init, @portable_fini
+Sizes: 2 + 2 <= 3?
+Estimated reduction: 25% (1) 1 : @portable_init; @portable_fini | Score 5.000000e-01
+FinalSizes: F1+F2 4; F12 3 : [1]
+Merged: @portable_init, @portable_fini = @m.f.8
+Total operand reordering: 0/0 (nan %)
+Average number of trials before merging: 0.000000e+00
+Maximum number of trials before merging: 0
+clang-10: warning: argument unused during compilation: '-I linux64' [-Wunused-command-line-argument]
+clang-10: warning: argument unused during compilation: '-I .' [-Wunused-command-line-argument]
