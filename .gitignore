@@ -1,0 +1,11 @@
+*.bc
+*.csv
+
+build/*
+
+eval/spec2006/*/build
+eval/spec2006/Experiment.config
+eval/spec2006/Makefile.default
+
+eval/results/*
+
