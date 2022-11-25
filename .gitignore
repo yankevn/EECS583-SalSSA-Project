@@ -6,6 +6,10 @@ build/*
 eval/spec2006/*/build
 eval/spec2006/Experiment.config
 eval/spec2006/Makefile.default
+eval/spec2006/Makefile.config
+
+eval/spec2006/*/default.profraw
+eval/spec2006/*/profile.txt
 
 eval/results/*
 
