@@ -2492,6 +2492,9 @@ public:
   // size_t NumOfInstructions;
   // size_t NumOfBlocks;
 
+  // Record opcodes that occur sequentially in code
+  std::map<std::pair<unsigned, unsigned>, int> BigramFreq;
+
   #ifdef FMSA_USE_JACCARD
   std::set<Type *> Types;
   #else
@@ -2507,12 +2510,23 @@ public:
     //for (int i = 0; i<MaxOpcode; i++) OpcodeFreq[i] = 0;
 
     // NumOfInstructions = 0;
+    unsigned prevOpcode = UINT16_MAX;
     for (Instruction &I : instructions(F)) {
       //OpcodeFreq[I.getOpcode()]++;
       if (OpcodeFreq.find(I.getOpcode()) != OpcodeFreq.end())
         OpcodeFreq[I.getOpcode()]++;
       else OpcodeFreq[I.getOpcode()] = 1;
       // NumOfInstructions++;
+
+      // Only start counting bigrams after the first iteration
+      if (prevOpcode != UINT16_MAX) {
+        std::pair<unsigned, unsigned> bigram = {prevOpcode, I.getOpcode()};
+        if (OpcodeFreq.find(bigram) == OpcodeFreq.end()){
+          OpcodeFreq[bigram] = 0;\
+        }
+        OpcodeFreq[bigram]++;
+      }
+      prevOpcode = I.getOpcode();
       
       #ifdef FMSA_USE_JACCARD
       Types.insert(I.getType());
@@ -2545,6 +2559,10 @@ public:
     TypesDiff = 0;
     TypesSim = 0;
 
+    // Will be merged with normal Opcode similarity and leftovers
+    BigramSimilarity = 0;
+    BigramLeftOver = 0;
+
     /*
     for (unsigned i = 0; i < Fingerprint::MaxOpcode; i++) {
       int Freq1 = FP1->OpcodeFreq[i];
@@ -2571,6 +2589,26 @@ public:
       }
     }
     
+    for (auto Pair : FP1->BigramFreq) {
+      if (FP2->BigramFreq.find(Pair.first) == FP2->BigramFreq.end()) {
+        BigramLeftOver += Pair.second;
+      } else {
+        int MinFreq = std::min(Pair.second, FP2->BigramFreq[Pair.first]);
+        BigramSimilarity += MinFreq;
+        BigramLeftOver +=
+            std::max(Pair.second, FP2->BigramFreq[Pair.first]) - MinFreq;
+      }
+    }
+    for (auto Pair : FP2->BigramFreq) {
+      if (FP1->BigramFreq.find(Pair.first) == FP1->BigramFreq.end()) {
+        BigramLeftOver += Pair.second;
+      }
+    }
+
+    // For now, just add them together and hope for the best
+    Similarity += BigramSimilarity
+    LeftOver += BigramLeftOver
+
     #ifdef FMSA_USE_JACCARD
     for (auto Ty1 : FP1->Types) {
       if (FP2->Types.find(Ty1) == FP2->Types.end())
