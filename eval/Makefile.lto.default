@@ -29,7 +29,18 @@ baseline: $(LINKEDBIN)
 	$(LLOPT) $(LINKEDBIN) -o $(BIN).tmp.bc
 	#$(LLPATH)/llvm-dis $(BIN).tmp.bc -o $(BIN).bl.ll
 	$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).o.bl -c $(LDFLAGS)
-	#$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).bl $(LDFLAGS) 
+	#$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).bl $(LDFLAGS)
+
+gen: $(LINKEDBIN)
+	$(LLOPT) $(LINKEDBIN) -o $(BIN).tmp.bc
+	$(LLOPT) -pgo-instr-gen -instrprof $(BIN).tmp.bc -o $(BIN).tmp.prof.bc
+	$(BC) -fprofile-instr-generate $(BIN).tmp.prof.bc -o $(BIN)_prof $(LDFLAGS)
+	$(RUN)
+	$(LLPROF) merge -o $(BIN).profdata default.profraw
+
+profile: gen
+	$(LLOPT) -pgo-instr-use -pgo-test-profile-file=$(BIN).profdata -mergefunc -func-merging -func-merging-salssa=true -func-merging-coalescing=$(SALSSA_COALESCING) -func-merging-ranking-threshold=0 -func-merging-sa-method=1 -func-merging-whole-program=true -func-merging-threshold=0 -func-merging-explore=$(FMEXPLORATION) -func-merging-max-param=true -func-merging-identic-type=true -func-merging-similarity-pruning=false -func-merging-unify-return=false -func-merging-debug=false -func-merging-verbose=false $(LINKEDBIN) -o $(BIN).bc
+	$(BC) -x ir $(BIN).bc $(OPT) -o $(BIN).o.prof -c $(LDFLAGS)
 
 llvm: $(LINKEDBIN)
 	$(LLOPT) -mergefunc $(LINKEDBIN) -o $(BIN).tmp.bc
@@ -40,13 +51,13 @@ fm: $(LINKEDBIN)
 	$(LLOPT) -mergefunc -func-merging -func-merging-salssa=false -func-merging-whole-program=true -func-merging-threshold=0 -func-merging-explore=$(FMEXPLORATION) -func-merging-max-param=true -func-merging-identic-type=true -func-merging-similarity-pruning=false -func-merging-sa-method=1 -func-merging-debug=false -func-merging-verbose=false -mem2reg $(LINKEDBIN) -o $(BIN).tmp.bc
 	#$(LLPATH)/llvm-dis $(BIN).tmp.bc -o $(BIN).fm.ll
 	$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).o.fm -c $(LDFLAGS)
-	#$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).fm $(LDFLAGS) 
+	#$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).fm $(LDFLAGS)
 
 fm2: $(LINKEDBIN)
 	$(LLOPT) -mergefunc -func-merging -func-merging-salssa=true -func-merging-coalescing=$(SALSSA_COALESCING) -func-merging-ranking-threshold=0 -func-merging-sa-method=1 -func-merging-whole-program=true -func-merging-threshold=0 -func-merging-explore=$(FMEXPLORATION) -func-merging-max-param=true -func-merging-identic-type=true -func-merging-similarity-pruning=false -func-merging-unify-return=false -func-merging-debug=false -func-merging-verbose=false $(LINKEDBIN) -o $(BIN).tmp.bc
 	#$(LLPATH)/llvm-dis $(BIN).tmp.bc -o $(BIN).fm2.ll
 	$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).o.fm2 -c $(LDFLAGS)
-	#$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).fm2 $(LDFLAGS) 
+	#$(BC) -x ir $(BIN).tmp.bc $(OPT) -o $(BIN).fm2 $(LDFLAGS)
 
 clean:
-	$(RM) -f $(LBINS) build/*.bc build/*.ll build/*.o $(BIN).fm $(BIN).bl $(BIN).llvm $(BIN).fm2 $(BIN).o.fm $(BIN).o.bl $(BIN).o.llvm $(BIN).o.fm2
+	$(RM) -f $(LBINS) build/*.bc build/*.ll build/*.o $(BIN).fm $(BIN).bl $(BIN).llvm $(BIN).fm2 $(BIN).o.fm $(BIN).o.bl $(BIN).o.llvm $(BIN).o.fm2 $(BIN).o.prof default.profraw $(BIN).profdata $(BIN)_prof
