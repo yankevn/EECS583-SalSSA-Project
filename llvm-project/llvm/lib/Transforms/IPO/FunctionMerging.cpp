@@ -8,7 +8,7 @@
 //===----------------------------------------------------------------------===//
 //
 // This file implements the general function merging optimization.
-//  
+//
 // It identifies similarities between functions, and If profitable, merges them
 // into a single function, replacing the original ones. Functions do not need
 // to be identical to be merged. In fact, there is very little restriction to
@@ -31,7 +31,7 @@
 // degree of similarity, which is computed from the functions' fingerprints.
 // Only the top candidates are analyzed in a greedy manner and if one of them
 // produces a profitable result, the merged function is taken.
-// 
+//
 //===----------------------------------------------------------------------===//
 //
 // This optimization was proposed in
@@ -808,7 +808,7 @@ bool FunctionMerger::matchInstructions(Instruction *I1, Instruction *I2, const F
       Value *Idx1 = Indices1[CurIdx];
       Value *Idx2 = Indices2[CurIdx];
       //if (!CT->indexValid(Index)) return nullptr;
-      
+
       //validate indices
       if (isa<StructType>(CTy1) || isa<StructType>(CTy2)) {
         //if types are structs, the indices must be and remain constants
@@ -823,7 +823,7 @@ bool FunctionMerger::matchInstructions(Instruction *I1, Instruction *I2, const F
       bool sameType = areTypesEquivalent(AggTy1, AggTy2, DL, Options);
       if (!sameType) return false;
     }
-   
+
     break;
   }
   case Instruction::Switch: {
@@ -1033,7 +1033,7 @@ void FunctionMerger::alignLinearizedCFGs(SmallVectorImpl<Value *> &F1Vec,
 */
 
 bool FunctionMerger::validMergeTypes(Function *F1, Function *F2, const FunctionMergingOptions &Options) {
-  bool EquivTypes = areTypesEquivalent(F1->getReturnType(), F2->getReturnType(), DL, 
+  bool EquivTypes = areTypesEquivalent(F1->getReturnType(), F2->getReturnType(), DL,
                                        Options);
   if (!EquivTypes &&
       !F1->getReturnType()->isVoidTy() && !F2->getReturnType()->isVoidTy()) {
@@ -1088,14 +1088,14 @@ static bool validMergePair(Function *F1, Function *F2) {
 
   //if (F1->hasComdat()!=F2->hasComdat()) return false;
   //if (F1->hasComdat() && F1->getComdat() != F2->getComdat()) return false;
-  
+
   if (F1->hasPersonalityFn()!=F2->hasPersonalityFn()) return false;
   if (F1->hasPersonalityFn()) {
     Constant *PersonalityFn1 = F1->getPersonalityFn();
     Constant *PersonalityFn2 = F2->getPersonalityFn();
     if (PersonalityFn1 != PersonalityFn2) return false;
   }
-  
+
   return true;
 }
 
@@ -1306,7 +1306,7 @@ Function *RemoveFuncIdArg(Function *F, std::vector<Argument *> &ArgsList) {
    //std::vector<Type *> Params(FTy->param_begin(), FTy->param_end());
    FunctionType *NFTy = FunctionType::get(FTy->getReturnType(), Params, false);
    //unsigned NumArgs = Params.size();
- 
+
    // Create the new function body and insert it into the module...
    Function *NF = Function::Create(NFTy, F->getLinkage());
 
@@ -1331,7 +1331,7 @@ Function *RemoveFuncIdArg(Function *F, std::vector<Argument *> &ArgsList) {
 
    F->getParent()->getFunctionList().insert(F->getIterator(), NF);
    NF->takeName(F);
- 
+
    // Since we have now created the new function, splice the body of the old
    // function right into the new function, leaving the old rotting hulk of the
    // function empty.
@@ -1364,7 +1364,7 @@ Function *RemoveFuncIdArg(Function *F, std::vector<Argument *> &ArgsList) {
    F->getAllMetadata(MDs);
    for (auto MD : MDs)
      NF->addMetadata(MD.first, *MD.second);
- 
+
    // Fix up any BlockAddresses that refer to the function.
    F->replaceAllUsesWith(ConstantExpr::getBitCast(NF, F->getType()));
    // Delete the bitcast that we just created, so that NF does not
@@ -1414,7 +1414,7 @@ bool FunctionMerger::FMSACodeGen<BlockListType>::generate(AlignedSequence<Value*
   BasicBlock *EntryBB1 = CodeGenerator<BlockListType>::getEntryBlock1();
   BasicBlock *EntryBB2 = CodeGenerator<BlockListType>::getEntryBlock2();
   BasicBlock *PreBB = CodeGenerator<BlockListType>::getPreBlock();
-  
+
   Type *RetType1 = CodeGenerator<BlockListType>::getReturnType1();
   Type *RetType2 = CodeGenerator<BlockListType>::getReturnType2();
 
@@ -1427,7 +1427,7 @@ bool FunctionMerger::FMSACodeGen<BlockListType>::generate(AlignedSequence<Value*
   Value *RetUnifiedAddr = nullptr;
   Value *RetAddr1 = nullptr;
   Value *RetAddr2 = nullptr;
-  
+
   BasicBlock *MergedBB = nullptr;
   BasicBlock *MergedBB1 = nullptr;
   BasicBlock *MergedBB2 = nullptr;
@@ -1437,7 +1437,7 @@ bool FunctionMerger::FMSACodeGen<BlockListType>::generate(AlignedSequence<Value*
   std::map<SelectCacheEntry, Value *> SelectCache;
   std::map<std::pair<BasicBlock *, BasicBlock *>, BasicBlock *> CacheBBSelect;
 
-  
+
   std::set<BasicBlock*> OriginalBlocks;
   std::set<PHINode*> PHINodes;
   for (auto &Entry : AlignedSeq) {
@@ -1524,7 +1524,7 @@ bool FunctionMerger::FMSACodeGen<BlockListType>::generate(AlignedSequence<Value*
       CodeGenerator<BlockListType>::insert(Br);
     }
   }
- 
+
   for (auto &Entry : AlignedSeq) {
     // mergeable instructions
     if (Entry.match()) {
@@ -1590,7 +1590,7 @@ bool FunctionMerger::FMSACodeGen<BlockListType>::generate(AlignedSequence<Value*
         VMap[I2] = NewI;
 
         // TODO: temporary removal of metadata
-        
+
         SmallVector<std::pair<unsigned, MDNode *>, 8> MDs;
         NewI->getAllMetadata(MDs);
         for (std::pair<unsigned, MDNode *> MDPair : MDs) {
@@ -1653,7 +1653,7 @@ bool FunctionMerger::FMSACodeGen<BlockListType>::generate(AlignedSequence<Value*
         Builder.Insert(NewI);
 
         // TODO: temporarily removing metadata
-        
+
         SmallVector<std::pair<unsigned, MDNode *>, 8> MDs;
         NewI->getAllMetadata(MDs);
         for (std::pair<unsigned, MDNode *> MDPair : MDs) {
@@ -1778,7 +1778,7 @@ bool FunctionMerger::FMSACodeGen<BlockListType>::generate(AlignedSequence<Value*
             CodeGenerator<BlockListType>::insert(LI);
             V2 = LI;
           }
-          
+
           Value *SelV = Builder.CreateSelect(IsFunc1, V1, V2);
           if (isa<Instruction>(SelV)) {
             CodeGenerator<BlockListType>::insert(dyn_cast<Instruction>(SelV));
@@ -1857,7 +1857,7 @@ bool FunctionMerger::FMSACodeGen<BlockListType>::generate(AlignedSequence<Value*
                     BuilderBB.Insert(NewLP);
 
                     CodeGenerator<BlockListType>::insert(NewLP);
-                    
+
                     BasicBlock *F1BB = dyn_cast<BasicBlock>(F1V);
                     BasicBlock *F2BB = dyn_cast<BasicBlock>(F2V);
 
@@ -1867,11 +1867,11 @@ bool FunctionMerger::FMSACodeGen<BlockListType>::generate(AlignedSequence<Value*
                     if (TailBBs[F2BB]==nullptr) TailBBs[F2BB]=BB2;
                     VMap[F1BB->getLandingPadInst()] = NewLP;
                     VMap[F2BB->getLandingPadInst()] = NewLP;
-                    
+
                     BB1->replaceAllUsesWith(SelectBB);
                     BB2->replaceAllUsesWith(SelectBB);
 
-                    //remove landingpad instructions from 
+                    //remove landingpad instructions from
                     LP1->replaceAllUsesWith(NewLP);
                     CodeGenerator<BlockListType>::erase(LP1);
                     LP1->eraseFromParent();
@@ -1954,7 +1954,7 @@ bool FunctionMerger::FMSACodeGen<BlockListType>::generate(AlignedSequence<Value*
 
         if ( I->getOpcode() == Instruction::Ret && RequiresUnifiedReturn ) {
           Value *V = MapValue(I->getOperand(0), VMap);
-          
+
           if (V->getType()!=ReturnType) {
             Value *Addr = (isFuncId1?RetAddr1:RetAddr2);
             Instruction *SI = Builder.CreateStore(V, Addr);
@@ -2067,12 +2067,12 @@ FunctionMergeResult FunctionMerger::merge(Function *F1, Function *F2, std::strin
       break;
     }
     case 1: {
-    
+
 
       NeedlemanWunschSA<SmallVectorImpl<Value*>> SA(ScoringSystem(-1,2),FunctionMerger::match);
       AlignedSeq = SA.getAlignment(F1Vec,F2Vec);
 
-      
+
       break;
     }
     default: {
@@ -2148,7 +2148,7 @@ FunctionMergeResult FunctionMerger::merge(Function *F1, Function *F2, std::strin
   //Value *RetUnifiedAddr = nullptr;
   //Value *RetAddr1 = nullptr;
   //Value *RetAddr2 = nullptr;
-  
+
   if (validMergeTypes(F1, F2, Options)) {
     //errs() << "Simple return types\n";
     ReturnType = RetType1;
@@ -2247,7 +2247,7 @@ FunctionMergeResult FunctionMerger::merge(Function *F1, Function *F2, std::strin
   /*
   if (!RequiresFuncId) {
     errs() << "Removing FuncId\n";
-    
+
     MergedFunc = RemoveFuncIdArg(MergedFunc, ArgsList);
 
     for (auto &kv : ParamMap1) {
@@ -2257,7 +2257,7 @@ FunctionMergeResult FunctionMerger::merge(Function *F1, Function *F2, std::strin
       ParamMap2[kv.first] = kv.second - 1;
     }
     FuncId = nullptr;
-    
+
   }
   */
 
@@ -2348,7 +2348,7 @@ bool FunctionMerger::replaceCallsWith(Function *F, FunctionMergeResult &MFR, con
 
   if (Calls.size()<CountUsers)
     return false;
-  
+
   for (CallBase *CI : Calls) {
     IRBuilder<> Builder(CI);
 
@@ -2513,7 +2513,7 @@ public:
         OpcodeFreq[I.getOpcode()]++;
       else OpcodeFreq[I.getOpcode()] = 1;
       // NumOfInstructions++;
-      
+
       #ifdef FMSA_USE_JACCARD
       Types.insert(I.getType());
       #else
@@ -2554,7 +2554,7 @@ public:
       LeftOver += std::max(Freq1, Freq2) - MinFreq;
     }
     */
-    
+
     for (auto Pair : FP1->OpcodeFreq) {
       if (FP2->OpcodeFreq.find(Pair.first) == FP2->OpcodeFreq.end()) {
         LeftOver += Pair.second;
@@ -2570,7 +2570,7 @@ public:
         LeftOver += Pair.second;
       }
     }
-    
+
     #ifdef FMSA_USE_JACCARD
     for (auto Ty1 : FP1->Types) {
       if (FP2->Types.find(Ty1) == FP2->Types.end())
@@ -2722,12 +2722,18 @@ bool FunctionMerging::runOnModule(Module &M) {
     if (F.isDeclaration() || F.isVarArg() || (!HasWholeProgram && F.hasAvailableExternallyLinkage()))
       continue;
 
+    // TODO(doyoon): investigate different options on what defines a "hot" function and effects on runtime/code size
+    if (PSI->isFunctionHotInCallGraph(&F, *LookupBFI(F))) {
+      errs() << "Skipping hot function " << F.getName() << "\n";
+      continue;
+    }
+
     //if (!Blacklist.count(F.getName().str())) continue;
-    
+
     FuncSizes[&F] = EstimateFunctionSize(&F, &TTI);
 
     if (!EnableSALSSA) demoteRegToMem(F);
-    
+
     FunctionsToProcess.push_back(
       std::pair<Function *, unsigned>(&F, FuncSizes[&F]) );
 
@@ -2901,7 +2907,7 @@ bool FunctionMerging::runOnModule(Module &M) {
 */
 
           Optional<size_t> SizeF12Opt = MeasureSize(M,Result,AlwaysPreserved,Options);
-	  
+
           if (SizeF1F2Opt.hasValue() && SizeF12Opt.hasValue() && SizeF1F2Opt.getValue() && SizeF12Opt.getValue()) {
             SizeF1F2 = SizeF1F2Opt.getValue();
             SizeF12 = SizeF12Opt.getValue();
@@ -2909,7 +2915,7 @@ bool FunctionMerging::runOnModule(Module &M) {
             errs() << "Sizes: Could NOT Compute!\n";
             continue; //only accept compiled estimates
           }
-        } 
+        }
         if (Debug || Verbose) {
           errs() << "Estimated Sizes: " << SizeF1 << " + " << SizeF2 << " <= " << SizeF12 << "? (" << (SizeF12 <
             SizeF1F2 * ((100.0 + MergingOverheadThreshold) / 100.0)) << ") ";
@@ -3329,7 +3335,7 @@ static void fixNotDominatedUses(Function *F, BasicBlock *Entry, DominatorTree &D
       StoreInstIntoAddr(&I, StoredAddress[&I]);
     }
   }
-  
+
   for (auto &kv1 : UpdateList) {
     Instruction *I = kv1.first;
     for (auto &kv : kv1.second) {
@@ -3487,12 +3493,12 @@ static void CodeGen(BlockListType &Blocks1, BlockListType &Blocks2,
       NewI = I->clone();
       Builder.Insert(NewI);
     }
-    
+
     NewI->dropPoisonGeneratingFlags(); //TODO: NOT SURE IF THIS IS VALID
 
 
     // TODO: temporarily removing metadata
-    
+
     SmallVector<std::pair<unsigned, MDNode *>, 8> MDs;
     NewI->getAllMetadata(MDs);
     for (std::pair<unsigned, MDNode *> MDPair : MDs) {
@@ -3504,13 +3510,13 @@ static void CodeGen(BlockListType &Blocks1, BlockListType &Blocks2,
       //GetElementPtrInst * GEP2 = dyn_cast<GetElementPtrInst>(I2);
       dyn_cast<GetElementPtrInst>(NewI)->setIsInBounds(GEP->isInBounds());
     }
-    
+
     if (CallBase *CB = dyn_cast<CallBase>(NewI)) {
       AttributeList AL;
       CB->setAttributes(AL);
     }
 
-    
+
     return NewI;
   };
 
@@ -3664,7 +3670,7 @@ bool FunctionMerger::SALSSACodeGen<BlockListType>::generate(AlignedSequence<Valu
   BasicBlock *EntryBB1 = CodeGenerator<BlockListType>::getEntryBlock1();
   BasicBlock *EntryBB2 = CodeGenerator<BlockListType>::getEntryBlock2();
   BasicBlock *PreBB = CodeGenerator<BlockListType>::getPreBlock();
-  
+
   Type *RetType1 = CodeGenerator<BlockListType>::getReturnType1();
   Type *RetType2 = CodeGenerator<BlockListType>::getReturnType2();
 
@@ -3733,11 +3739,11 @@ bool FunctionMerger::SALSSACodeGen<BlockListType>::generate(AlignedSequence<Valu
 
     bool Handled = false;
 
-    BranchInst *NewBr = dyn_cast<BranchInst>(NewI);    
-    if (EnableOperandReordering && NewBr!=nullptr && NewBr->isConditional()) { 
-       BranchInst *Br1 = dyn_cast<BranchInst>(I1);       
+    BranchInst *NewBr = dyn_cast<BranchInst>(NewI);
+    if (EnableOperandReordering && NewBr!=nullptr && NewBr->isConditional()) {
+       BranchInst *Br1 = dyn_cast<BranchInst>(I1);
        BranchInst *Br2 = dyn_cast<BranchInst>(I2);
-       
+
        BasicBlock *SuccBB10 = dyn_cast<BasicBlock>(MapValue(Br1->getSuccessor(0), VMap));
        BasicBlock *SuccBB11 = dyn_cast<BasicBlock>(MapValue(Br1->getSuccessor(1), VMap));
 
@@ -3841,7 +3847,7 @@ bool FunctionMerger::SALSSACodeGen<BlockListType>::generate(AlignedSequence<Valu
           //CacheBBSelect[CacheKey] = SelectBB;
           V = SelectBB;
         }
-        
+
         if (F1BB->isLandingPad() || F2BB->isLandingPad()) {
 
           LandingPadInst *LP1 = F1BB->getLandingPadInst();
@@ -3856,14 +3862,14 @@ bool FunctionMerger::SALSSACodeGen<BlockListType>::generate(AlignedSequence<Valu
           BuilderBB.Insert(NewLP);
 
           BuilderBB.CreateBr(dyn_cast<BasicBlock>(V));
- 
+
           BlocksF1[LPadBB] = I1->getParent();
           BlocksF2[LPadBB] = I2->getParent();
 
           VMap[F1BB->getLandingPadInst()] = NewLP;
-          VMap[F2BB->getLandingPadInst()] = NewLP; 
-          
-          V = LPadBB;         
+          VMap[F2BB->getLandingPadInst()] = NewLP;
+
+          V = LPadBB;
         }
         NewI->setOperand(i, V);
       }
@@ -3891,18 +3897,18 @@ bool FunctionMerger::SALSSACodeGen<BlockListType>::generate(AlignedSequence<Valu
             LandingPadInst *LP = FXBB->getLandingPadInst();
             assert(LP != nullptr &&
 		           "Should have a landingpad inst!");
- 
+
 
             BasicBlock *LPadBB = BasicBlock::Create(Context, "lpad.bb", MergedFunc);
             IRBuilder<> BuilderBB(LPadBB);
- 
+
             Instruction *NewLP = LP->clone();
             BuilderBB.Insert(NewLP);
             VMap[LP] = NewLP;
             BlocksReMap[LPadBB] = I->getParent();
- 
+
             BuilderBB.CreateBr(dyn_cast<BasicBlock>(V));
- 
+
             V = LPadBB;
           }
 
@@ -4016,7 +4022,7 @@ bool FunctionMerger::SALSSACodeGen<BlockListType>::generate(AlignedSequence<Valu
           NewI->setOperand(i, V);
         }
       }
-    
+
     return true;
   };
 
@@ -4153,7 +4159,7 @@ bool FunctionMerger::SALSSACodeGen<BlockListType>::generate(AlignedSequence<Valu
 
           // TODO: cache the created instructions
           //Value *CastedV = CreateCast(Builder, V, NewI->getOperand(i)->getType());
-          Value *CastedV = createCastIfNeeded(V, NewI->getOperand(i)->getType(), Builder, IntPtrTy); 
+          Value *CastedV = createCastIfNeeded(V, NewI->getOperand(i)->getType(), Builder, IntPtrTy);
           NewI->setOperand(i, CastedV);
         }
       } else {
@@ -4250,7 +4256,7 @@ bool FunctionMerger::SALSSACodeGen<BlockListType>::generate(AlignedSequence<Valu
     IRBuilder<> Builder(NewBr);
     Value *XorCond = Builder.CreateXor(NewBr->getCondition(),IsFunc1);
     NewBr->setCondition(XorCond);
-  }           
+  }
 
 #ifdef TIME_STEPS_DEBUG
   TimeCodeGen2.stopTimer();
@@ -4370,7 +4376,7 @@ bool FunctionMerger::SALSSACodeGen<BlockListType>::generate(AlignedSequence<Valu
     return ( float(Intersection)/float(UnionBB.size()) > Threshold );
   };
 
-  auto OptimizeCoalescing = [&](Instruction *I, std::set<Instruction *> &InstSet, std::map<Instruction*,std::map<Instruction*,unsigned> > &CoalescingCandidates, std::set<Instruction *> &Visited) {    
+  auto OptimizeCoalescing = [&](Instruction *I, std::set<Instruction *> &InstSet, std::map<Instruction*,std::map<Instruction*,unsigned> > &CoalescingCandidates, std::set<Instruction *> &Visited) {
     Instruction *OtherI = nullptr;
     unsigned Score = 0;
     if (CoalescingCandidates.find(I)!=CoalescingCandidates.end()) {
@@ -4431,7 +4437,7 @@ bool FunctionMerger::SALSSACodeGen<BlockListType>::generate(AlignedSequence<Valu
 
       //errs() << "Fixed Domination:\n";
       //MergedFunc->dump();
-      
+
       #ifdef OPTIMIZE_SALSSA_CODEGEN
       DominatorTree DT(*MergedFunc);
       PromoteMemToReg(Allocas, DT, nullptr);
