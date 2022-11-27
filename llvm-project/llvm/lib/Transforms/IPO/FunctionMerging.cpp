@@ -2521,10 +2521,10 @@ public:
       // Only start counting bigrams after the first iteration
       if (prevOpcode != UINT16_MAX) {
         std::pair<unsigned, unsigned> bigram = {prevOpcode, I.getOpcode()};
-        if (OpcodeFreq.find(bigram) == OpcodeFreq.end()){
-          OpcodeFreq[bigram] = 0;\
+        if (BigramFreq.find(bigram) == BigramFreq.end()){
+          BigramFreq[bigram] = 0;\
         }
-        OpcodeFreq[bigram]++;
+        BigramFreq[bigram]++;
       }
       prevOpcode = I.getOpcode();
       
@@ -2560,8 +2560,8 @@ public:
     TypesSim = 0;
 
     // Will be merged with normal Opcode similarity and leftovers
-    BigramSimilarity = 0;
-    BigramLeftOver = 0;
+    int BigramSimilarity = 0;
+    int BigramLeftOver = 0;
 
     /*
     for (unsigned i = 0; i < Fingerprint::MaxOpcode; i++) {
@@ -2606,8 +2606,8 @@ public:
     }
 
     // For now, just add them together and hope for the best
-    Similarity += BigramSimilarity
-    LeftOver += BigramLeftOver
+    Similarity += BigramSimilarity;
+    LeftOver += BigramLeftOver;
 
     #ifdef FMSA_USE_JACCARD
     for (auto Ty1 : FP1->Types) {
