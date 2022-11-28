@@ -2605,9 +2605,14 @@ public:
       }
     }
 
-    // For now, just add them together and hope for the best
-    Similarity += BigramSimilarity;
-    LeftOver += BigramLeftOver;
+    // // For now, just add them together and hope for the best
+    // Similarity += BigramSimilarity;
+    // LeftOver += BigramLeftOver;
+
+    
+    // What if we only used bigrams?
+    Similarity = BigramSimilarity;
+    LeftOver = BigramLeftOver;
 
     #ifdef FMSA_USE_JACCARD
     for (auto Ty1 : FP1->Types) {
