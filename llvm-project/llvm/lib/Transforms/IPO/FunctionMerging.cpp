@@ -2494,6 +2494,7 @@ public:
 
   // Record opcodes that occur sequentially in code
   std::map<std::pair<unsigned, unsigned>, int> BigramFreq;
+  std::map<std::pair<std::pair<unsigned, unsigned>, unsigned>, int> TrigramFreq;
 
   #ifdef FMSA_USE_JACCARD
   std::set<Type *> Types;
@@ -2510,7 +2511,11 @@ public:
     //for (int i = 0; i<MaxOpcode; i++) OpcodeFreq[i] = 0;
 
     // NumOfInstructions = 0;
+
+    // Used in bigrams
     unsigned prevOpcode = UINT16_MAX;
+    // Used in trigrams
+    unsigned prevprevOpcode = UINT16_MAX;
     for (Instruction &I : instructions(F)) {
       //OpcodeFreq[I.getOpcode()]++;
       if (OpcodeFreq.find(I.getOpcode()) != OpcodeFreq.end())
@@ -2522,10 +2527,19 @@ public:
       if (prevOpcode != UINT16_MAX) {
         std::pair<unsigned, unsigned> bigram = {prevOpcode, I.getOpcode()};
         if (BigramFreq.find(bigram) == BigramFreq.end()){
-          BigramFreq[bigram] = 0;\
+          BigramFreq[bigram] = 0;
         }
         BigramFreq[bigram]++;
+
+        if (prevprevOpcode != UINT16_MAX) {
+          std::pair<std::pair<unsigned, unsigned>, unsigned> trigram = {{prevprevOpcode, prevOpcode}, I.getOpcode()};
+          if (TrigramFreq.find(trigram) == TrigramFreq.end()){
+            TrigramFreq[trigram] = 0;
+          }
+          TrigramFreq[trigram]++;
+        }
       }
+      prevprevOpcode = prevOpcode;
       prevOpcode = I.getOpcode();
       
       #ifdef FMSA_USE_JACCARD
@@ -2562,6 +2576,8 @@ public:
     // Will be merged with normal Opcode similarity and leftovers
     int BigramSimilarity = 0;
     int BigramLeftOver = 0;
+    int TrigramSimilarity = 0;
+    int TrigramLeftOver = 0;
 
     /*
     for (unsigned i = 0; i < Fingerprint::MaxOpcode; i++) {
@@ -2604,15 +2620,41 @@ public:
         BigramLeftOver += Pair.second;
       }
     }
+    
+    for (auto Pair : FP1->TrigramFreq) {
+      if (FP2->TrigramFreq.find(Pair.first) == FP2->TrigramFreq.end()) {
+        TrigramLeftOver += Pair.second;
+      } else {
+        int MinFreq = std::min(Pair.second, FP2->TrigramFreq[Pair.first]);
+        TrigramSimilarity += MinFreq;
+        TrigramLeftOver +=
+            std::max(Pair.second, FP2->TrigramFreq[Pair.first]) - MinFreq;
+      }
+    }
+    for (auto Pair : FP2->TrigramFreq) {
+      if (FP1->TrigramFreq.find(Pair.first) == FP1->TrigramFreq.end()) {
+        TrigramLeftOver += Pair.second;
+      }
+    }
 
     // // For now, just add them together and hope for the best
     // Similarity += BigramSimilarity;
     // LeftOver += BigramLeftOver;
 
     
-    // What if we only used bigrams?
-    Similarity = BigramSimilarity;
-    LeftOver = BigramLeftOver;
+    // // What if we only used bigrams?
+    // Similarity = BigramSimilarity;
+    // LeftOver = BigramLeftOver;
+
+    // // What if we only used trigrams?
+    // Similarity = TrigramSimilarity;
+    // LeftOver = TrigramLeftOver;
+
+    // What if we only used bigrams AND trigrams?
+    Similarity = TrigramSimilarity;
+    LeftOver = TrigramLeftOver;
+    Similarity += BigramSimilarity;
+    LeftOver += BigramLeftOver;
 
     #ifdef FMSA_USE_JACCARD
     for (auto Ty1 : FP1->Types) {
