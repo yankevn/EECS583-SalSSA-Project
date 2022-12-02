@@ -2495,6 +2495,7 @@ public:
   // Record opcodes that occur sequentially in code
   std::map<std::pair<unsigned, unsigned>, int> BigramFreq;
   std::map<std::pair<std::pair<unsigned, unsigned>, unsigned>, int> TrigramFreq;
+  std::map<std::pair<std::pair<std::pair<unsigned, unsigned>, unsigned>, unsigned>, int> FourgramFreq;
 
   #ifdef FMSA_USE_JACCARD
   std::set<Type *> Types;
@@ -2516,6 +2517,8 @@ public:
     unsigned prevOpcode = UINT16_MAX;
     // Used in trigrams
     unsigned prevprevOpcode = UINT16_MAX;
+    // Used in 4-grams
+    unsigned prevprevprevOpcode = UINT16_MAX;
     for (Instruction &I : instructions(F)) {
       //OpcodeFreq[I.getOpcode()]++;
       if (OpcodeFreq.find(I.getOpcode()) != OpcodeFreq.end())
@@ -2537,8 +2540,18 @@ public:
             TrigramFreq[trigram] = 0;
           }
           TrigramFreq[trigram]++;
+
+          if (prevprevprevOpcode != UINT16_MAX) {
+            std::pair<std::pair<std::pair<unsigned, unsigned>, unsigned>, unsigned> fourgram = {{{prevprevprevOpcode, prevprevOpcode}, prevOpcode}, I.getOpcode()};
+            if (FourgramFreq.find(fourgram) == FourgramFreq.end()){
+              FourgramFreq[fourgram] = 0;
+            }
+            FourgramFreq[fourgram]++;
+
+          }
         }
       }
+      prevprevprevOpcode = prevprevOpcode;
       prevprevOpcode = prevOpcode;
       prevOpcode = I.getOpcode();
       
@@ -2578,6 +2591,8 @@ public:
     int BigramLeftOver = 0;
     int TrigramSimilarity = 0;
     int TrigramLeftOver = 0;
+    int FourgramSimilarity = 0;
+    int FourgramLeftOver = 0;
 
     /*
     for (unsigned i = 0; i < Fingerprint::MaxOpcode; i++) {
@@ -2636,6 +2651,22 @@ public:
         TrigramLeftOver += Pair.second;
       }
     }
+    
+    for (auto Pair : FP1->FourgramFreq) {
+      if (FP2->FourgramFreq.find(Pair.first) == FP2->FourgramFreq.end()) {
+        FourgramLeftOver += Pair.second;
+      } else {
+        int MinFreq = std::min(Pair.second, FP2->FourgramFreq[Pair.first]);
+        FourgramSimilarity += MinFreq;
+        FourgramLeftOver +=
+            std::max(Pair.second, FP2->FourgramFreq[Pair.first]) - MinFreq;
+      }
+    }
+    for (auto Pair : FP2->FourgramFreq) {
+      if (FP1->FourgramFreq.find(Pair.first) == FP1->FourgramFreq.end()) {
+        FourgramLeftOver += Pair.second;
+      }
+    }
 
     // // For now, just add them together and hope for the best
     // Similarity += BigramSimilarity;
@@ -2650,11 +2681,15 @@ public:
     // Similarity = TrigramSimilarity;
     // LeftOver = TrigramLeftOver;
 
-    // What if we only used bigrams AND trigrams?
-    Similarity = TrigramSimilarity;
-    LeftOver = TrigramLeftOver;
-    Similarity += BigramSimilarity;
-    LeftOver += BigramLeftOver;
+    // // What if we only used bigrams AND trigrams?
+    // Similarity = TrigramSimilarity;
+    // LeftOver = TrigramLeftOver;
+    // Similarity += BigramSimilarity;
+    // LeftOver += BigramLeftOver;
+
+    // What if we only used 4-grams?
+    Similarity = FourgramSimilarity;
+    LeftOver = FourgramLeftOver;
 
     #ifdef FMSA_USE_JACCARD
     for (auto Ty1 : FP1->Types) {
