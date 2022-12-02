@@ -2674,6 +2674,20 @@ Timer TimeRank("Merge::Rank", "Merge::Rank");
 Timer TimeUpdate("Merge::Update", "Merge::Update");
 #endif
 
+struct FunctionCandidate {
+  Function* F2;
+  unsigned int profitability;
+  FunctionMergeResult Result;
+};
+
+class CompareFunctionCandidateProfitability {
+  public:
+  // This should create a max heap
+  bool operator()(const FunctionCandidate F21, const FunctionCandidate F22) const {
+    return F21.profitability < F22.profitability;
+  }
+};
+
 bool FunctionMerging::runOnModule(Module &M) {
 
   //errs() << "Running FMSA\n";
@@ -2821,6 +2835,9 @@ bool FunctionMerging::runOnModule(Module &M) {
 
     unsigned MergingTrialsCount = 0;
 
+    // Create priority queue containing FunctionCandidate
+    std::priority_queue<FunctionCandidate, std::vector<FunctionCandidate>, CompareFunctionCandidateProfitability> ProfitabilityQueue;
+
     while (!Rank.empty()) {
       auto RankEntry = Rank.front();
       Function *F2 = RankEntry.F2;
@@ -2920,80 +2937,17 @@ bool FunctionMerging::runOnModule(Module &M) {
                  << "; " << GetValueName(F2) << " | Score " << RankEntry.Score
                  << "\n";
         }
-
+        errs() << "SizeF12: " << SizeF12 << "\n";
+        errs() << "SizeF1F2: " << SizeF1F2 << "\n";
+        errs() << "SizeF12 < SizeF1F2 * ((100.0 + MergingOverheadThreshold) / 100.0): " << (SizeF12 < SizeF1F2 * ((100.0 + MergingOverheadThreshold) / 100.0)) << "\n";
         if (SizeF12 <
             SizeF1F2 * ((100.0 + MergingOverheadThreshold) / 100.0)) {
 
-          //MergingDistance.push_back(MergingTrialsCount);
-
-          //TotalOpReorder += CountOpReorder;
-          //TotalBinOps += CountBinOps;
-
-          if (Debug || Verbose) {
-            errs() << "Merged: " << GetValueName(F1) << ", " << GetValueName(F2)
-                   << " = " << GetValueName(Result.getMergedFunction()) << "\n";
-          }
-          //if (Verbose) {
-          //  F1->dump();
-          //  F2->dump();
-          //  Result.getMergedFunction()->dump();
-          //}
-#ifdef TIME_STEPS_DEBUG
-          TimeUpdate.startTimer();
-#endif
-
-          AvailableCandidates.remove(F2);
-          WorkList.remove(F2);
-
-          TotalMerges++;
-
-          #ifdef DEBUG_OUTPUT_EACH_CHANGE
-          if (EnableSALSSA) {
-            std::string FilePath = std::string("/home/rodrigo/eval/eachmerge/em-")+std::to_string(TotalMerges)+std::string(".txt");
-            std::error_code EC;
-            llvm::raw_fd_ostream OS(FilePath, EC, llvm::sys::fs::F_None);
-            OS << "Merged: " << GetValueName(F1) << ", " << GetValueName(F2) << "\n";
-            OS << *F1;
-            OS << *F2;
-            OS.flush();
-          }
-          #endif
-
-          FM.updateCallGraph(Result, AlwaysPreserved, Options);
-
-          #ifdef DEBUG_OUTPUT_EACH_CHANGE
-          if (EnableSALSSA) {
-            std::string FilePath = std::string("/home/rodrigo/eval/eachmerge/em-")+std::to_string(TotalMerges)+std::string(".ll");
-            std::error_code EC;
-            llvm::raw_fd_ostream OS(FilePath, EC, llvm::sys::fs::F_None);
-            OS << M;
-            OS.flush();
-          }
-          #endif
-
-          // feed new function back into the working lists
-          WorkList.push_front(Result.getMergedFunction());
-          AvailableCandidates.push_front(Result.getMergedFunction());
-
-          FuncSizes[Result.getMergedFunction()] =
-              EstimateFunctionSize(Result.getMergedFunction(), &TTI);
-
-          if (!EnableSALSSA) demoteRegToMem(*Result.getMergedFunction());
-
-
-
-          CachedFingerprints[Result.getMergedFunction()] =
-              new Fingerprint(Result.getMergedFunction());
-
-#ifdef TIME_STEPS_DEBUG
-          TimeUpdate.stopTimer();
-#endif
-
-          if (TestFM_CompilationCostModel) {
-            SizeF1F2Opt = MeasureSize(M);
-          }
-
-          break; // end exploration with F1
+          unsigned int profitability = SizeF1F2 * ((100.0 + MergingOverheadThreshold) / 100.0) - SizeF12;
+          FunctionCandidate candidate = { F2, profitability, Result };
+          errs() << "About to push candidate onto ProfitabilityQueue\n";
+          ProfitabilityQueue.push(candidate);
+          
         } else {
           if (Result.getMergedFunction() != nullptr)
             Result.getMergedFunction()->eraseFromParent();
@@ -3004,6 +2958,97 @@ bool FunctionMerging::runOnModule(Module &M) {
         break;
       }
     }
+
+    if (!ProfitabilityQueue.empty()) {
+
+      // BEGIN WHAT WAS ORIGINALLY IN THE WHILE LOOP
+      errs() << "\n\n\n\n\nBEGIN WHAT WAS ORIGINALLY IN THE WHILE LOOP\n\n\n\n\n";
+
+      //MergingDistance.push_back(MergingTrialsCount);
+
+      //TotalOpReorder += CountOpReorder;
+      //TotalBinOps += CountBinOps;
+
+      errs() << "1\n";
+      errs() << "ProfitabilityQueue.size(): " << ProfitabilityQueue.size() << '\n';
+      FunctionCandidate TopCandidate = ProfitabilityQueue.top();
+      Function* TopF2 = TopCandidate.F2;
+      FunctionMergeResult TopResult = TopCandidate.Result;
+
+      errs() << "2\n";
+      if (Debug || Verbose) {
+        errs() << "Merged: " << GetValueName(F1) << ", " << GetValueName(TopF2)
+                << " = " << GetValueName(TopResult.getMergedFunction()) << "\n";
+      }
+      //if (Verbose) {
+      //  F1->dump();
+      //  TopF2->dump();
+      //  TopResult.getMergedFunction()->dump();
+      //}
+#ifdef TIME_STEPS_DEBUG
+    TimeUpdate.startTimer();
+#endif
+
+      errs() << "3\n";
+      AvailableCandidates.remove(TopF2);
+      WorkList.remove(TopF2);
+
+      TotalMerges++;
+
+      #ifdef DEBUG_OUTPUT_EACH_CHANGE
+      if (EnableSALSSA) {
+        std::string FilePath = std::string("/home/rodrigo/eval/eachmerge/em-")+std::to_string(TotalMerges)+std::string(".txt");
+        std::error_code EC;
+        llvm::raw_fd_ostream OS(FilePath, EC, llvm::sys::fs::F_None);
+        OS << "Merged: " << GetValueName(F1) << ", " << GetValueName(TopF2) << "\n";
+        OS << *F1;
+        OS << *F2;
+        OS.flush();
+      }
+      #endif
+
+      errs() << "4\n";
+      FM.updateCallGraph(TopResult, AlwaysPreserved, Options);
+
+      #ifdef DEBUG_OUTPUT_EACH_CHANGE
+      if (EnableSALSSA) {
+        std::string FilePath = std::string("/home/rodrigo/eval/eachmerge/em-")+std::to_string(TotalMerges)+std::string(".ll");
+        std::error_code EC;
+        llvm::raw_fd_ostream OS(FilePath, EC, llvm::sys::fs::F_None);
+        OS << M;
+        OS.flush();
+      }
+      #endif
+
+      errs() << "5\n";
+      // feed new function back into the working lists
+      WorkList.push_front(TopResult.getMergedFunction());
+      AvailableCandidates.push_front(TopResult.getMergedFunction());
+
+      FuncSizes[TopResult.getMergedFunction()] =
+          EstimateFunctionSize(TopResult.getMergedFunction(), &TTI);
+
+      if (!EnableSALSSA) demoteRegToMem(*TopResult.getMergedFunction());
+
+
+
+      errs() << "6\n";
+      CachedFingerprints[TopResult.getMergedFunction()] =
+          new Fingerprint(TopResult.getMergedFunction());
+
+#ifdef TIME_STEPS_DEBUG
+    TimeUpdate.stopTimer();
+#endif
+
+      errs() << "7\n";
+      if (TestFM_CompilationCostModel) {
+        SizeF1F2Opt = MeasureSize(M);
+      }
+
+      // END WHAT WAS ORIGINALLY IN THE WHILE LOOP
+      errs() << "\n\n\n\n\n****************************************************\n\n\n\n\n";
+    }
+
   }
 
   WorkList.clear();
