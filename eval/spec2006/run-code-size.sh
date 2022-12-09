@@ -7,7 +7,7 @@ else
 BENCHMARKS=$*
 fi
 
-BENCHMARKS=$(cat ./BenchNames)
+# BENCHMARKS=$(cat ./BenchNames)
 
 BUILDS="fm2 fm baseline"
 
